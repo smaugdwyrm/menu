@@ -91,7 +91,7 @@ export default function App() {
         }, 1500);
       } else {
         setIsLoading(false);
-        setAuthMessage('Invalid OTP. Please try again. (Hint: It\'s 123456)');
+        setAuthMessage('Invalid OTP. Please try again. (Hint: It\'s 1234)');
       }
     }
   };
@@ -177,19 +177,19 @@ export default function App() {
   // Render auth screens
   if (authStep !== 'authenticated') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 flex items-center justify-center px-4 py-8">
+      <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center px-4 py-8"> {/* Ensure central alignment, adjusted padding */}
         <div className="w-full max-w-md">
           {/* Header */}
           <div className="text-center mb-8">
-            <div className="w-20 h-20 bg-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
+            <div className="w-20 h-20 bg-black rounded-full flex items-center justify-center mx-auto mb-4"> {/* Changed to black background */}
               <icons.shoppingCart className="w-10 h-10 text-white" />
             </div>
             <h1 className="text-3xl font-bold text-white mb-2">The Modern Eatery</h1>
             <p className="text-gray-400">Welcome to our digital dining experience</p>
           </div>
           
-          {/* Combined Phone/OTP Input Block */}
-          <div className="bg-white p-8 rounded-xl shadow-lg max-w-sm w-full text-black mx-auto">
+          {/* Combined Phone/OTP Input Block (Black & White Theme) */}
+          <div className="bg-white p-8 rounded-xl shadow-lg w-full text-black mx-auto">
             <h2 className="text-xl font-semibold mb-4 text-center">
               {authStep === 'otp' ? 'Verify your phone number' : 'Enter your phone number'}
             </h2>
@@ -205,12 +205,11 @@ export default function App() {
                 </button>
               )}
               <input
-                type="text" // Use text for flexible input, including leading zeros for phone
+                type="text" // Use text for flexible input
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 placeholder={authStep === 'otp' ? 'Enter OTP (123456)' : 'e.g., 9876543210'}
                 className={`w-full p-3 rounded-lg bg-gray-100 text-black border border-gray-300 focus:ring-2 focus:ring-black focus:border-transparent outline-none ${authStep === 'otp' ? 'pl-12' : ''}`}
-                // No maxLength here
                 required
               />
               <button
@@ -235,8 +234,8 @@ export default function App() {
                 ) : (
                   <button
                     onClick={handleResendOtp}
-                    className="text-purple-600 hover:text-purple-800 font-medium"
-                    type="button" // Important for buttons inside a form
+                    className="text-black hover:text-gray-700 font-medium" // Adjusted text color
+                    type="button"
                   >
                     Resend OTP
                   </button>
@@ -251,7 +250,7 @@ export default function App() {
 
   // Render main menu app
   return (
-    <div className="min-h-screen bg-gray-900 text-white px-4 py-6 sm:p-6 font-sans pb-32"> {/* Added pb-32 for floating cart */}
+    <div className="min-h-screen bg-gray-900 text-white px-4 py-6 sm:p-6 font-sans pb-32">
       <Header phoneNumber={phoneNumberStored} />
             
       <div className="text-center mb-8">
