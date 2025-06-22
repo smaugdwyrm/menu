@@ -105,7 +105,7 @@ export default function App() {
 
   const handleResendOtp = () => {
     setCountdown(30);
-    setAuthMessage('OTP resent! (Mock OTP: 123456)');
+    setAuthMessage('OTP resent! (Mock OTP: 1234)');
   };
 
   // --- Cart and Filter Logic ---
