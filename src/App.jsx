@@ -11,9 +11,10 @@ const icons = {
   minus: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line></svg>,
   trash: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>,
   x: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>,
-  chevronUp: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg>,
-  chevronDown: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>,
+  arrowRight: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="12 5 19 12 12 19"></polyline><line x1="19" y1="12" x2="5" y2="12"></line></svg>,
+  arrowLeft: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="12 19 5 12 12 5"></polyline><line x1="5" y1="12" x2="19" y2="12"></line></svg>,
 };
+
 
 // --- Data for the menu items ---
 const menuItems = [
@@ -29,12 +30,47 @@ const menuItems = [
   { id: 10, name: "Chicken Biryani", description: "Layered rice and chicken dish cooked with fragrant spices in the dum style.", tags: ["Indian", "Rice"], type: "non-veg", image: "https://images.pexels.com/photos/12737656/pexels-photo-12737656.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2", price: 580, topSeller: false },
 ];
 
+
 // --- Main App Component ---
 export default function App() {
   const [tagFilter, setTagFilter] = useState(null);
   const [typeFilter, setTypeFilter] = useState(null);
   const [cart, setCart] = useState([]);
-  const [isCartExpanded, setIsCartExpanded] = useState(false);
+  const [isCartOpen, setIsCartOpen] = useState(false);
+
+  // New state for phone number and OTP
+  const [inputValue, setInputValue] = useState(''); // Combined input for phone/OTP
+  const [otpSent, setOtpSent] = useState(false);
+  const [loggedIn, setLoggedIn] = useState(false);
+  const [message, setMessage] = useState('');
+
+  // --- Mock Auth Logic ---
+  const handleAuthAction = () => {
+    if (!otpSent) {
+      // Send OTP phase
+      if (inputValue.length > 0) { // Basic validation
+        setOtpSent(true);
+        setMessage('OTP sent! (Mock OTP: 1234)'); // Provide a mock OTP for testing
+        setInputValue(''); // Clear input after sending OTP
+      } else {
+        setMessage('Please enter your phone number.');
+      }
+    } else {
+      // Verify OTP phase
+      if (inputValue === '1234') { // Mock OTP verification
+        setLoggedIn(true);
+        setMessage('OTP Verified! Redirecting to menu...');
+      } else {
+        setMessage('Invalid OTP. Please try again. (Hint: It\'s 1234)');
+      }
+    }
+  };
+
+  const handleBackToPhone = () => {
+    setOtpSent(false);
+    setInputValue('');
+    setMessage('');
+  };
 
   // --- Cart and Filter Logic ---
   const handleItemQuantityChange = useCallback((item, change) => {
@@ -59,7 +95,6 @@ export default function App() {
   
   const handleClearCart = () => {
     setCart([]);
-    setIsCartExpanded(false);
   }
 
   const handleUpdateCartQuantity = useCallback((itemId, newQuantity) => {
@@ -103,64 +138,111 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white px-4 py-6 sm:p-6 font-sans pb-32">
-      <Header />
-      
-      <div className="text-center mb-8">
-        <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">Our Menu</h1>
-        <p className="text-gray-400 mt-2 text-sm sm:text-base">Explore our delicious offerings. Select filters to find your perfect dish.</p>
-      </div>
-
-      <FilterControls 
-        typeFilter={typeFilter}
-        setTypeFilter={setTypeFilter}
-        tagFilter={tagFilter}
-        handleTagClick={handleTagClick}
-        allTags={allTags}
-        clearTagFilter={() => setTagFilter(null)}
-      />
-
-      <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 max-w-7xl mx-auto">
-        {filteredItems.map(item => (
-          <MenuItemCard
-            key={item.id}
-            item={item}
-            cartItem={cart.find(ci => ci.id === item.id)}
-            onQuantityChange={handleItemQuantityChange}
-            onTagClick={handleTagClick}
-            onImageError={handleImageError}
-          />
-        ))}
-      </div>
-
-      {filteredItems.length === 0 && (
-        <div className="text-center text-gray-500 mt-16 col-span-full">
-            <h3 className="text-xl font-semibold">No Matches Found</h3>
-            <p>Try adjusting your filters.</p>
+    <div className="min-h-screen bg-gray-900 text-white px-4 py-6 sm:p-6 font-sans">
+      {!loggedIn ? (
+        <div className="flex flex-col items-center justify-center min-h-screen">
+          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight mb-8 text-white">Welcome to The Modern Eatery</h1>
+          <div className="bg-white p-8 rounded-xl shadow-lg max-w-sm w-full text-black">
+            <h2 className="text-xl font-semibold mb-4 text-center">
+              {otpSent ? 'Verify your phone number' : 'Enter your phone number'}
+            </h2>
+            <div className="relative flex items-center mb-4">
+              {otpSent && (
+                <button
+                  onClick={handleBackToPhone}
+                  className="absolute left-0 p-2 rounded-full text-gray-700 hover:bg-gray-200 transition-colors z-10"
+                  aria-label="Back to phone number input"
+                >
+                  <icons.arrowLeft className="w-6 h-6" />
+                </button>
+              )}
+              <input
+                type={otpSent ? 'text' : 'text'} // Can be 'number' for OTP but 'text' is more flexible for mock
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                placeholder={otpSent ? 'Enter OTP (1234)' : 'e.g., 9876543210'}
+                className={`w-full p-3 rounded-lg bg-gray-100 text-black border border-gray-300 focus:ring-2 focus:ring-black focus:border-transparent outline-none ${otpSent ? 'pl-12' : ''}`}
+              />
+              <button
+                onClick={handleAuthAction}
+                className={`absolute right-0 p-2 rounded-full ${otpSent ? 'bg-black text-white hover:bg-gray-800' : 'bg-black text-white hover:bg-gray-800'} transition-colors`}
+                aria-label={otpSent ? 'Verify OTP' : 'Send OTP'}
+              >
+                <icons.arrowRight className="w-6 h-6" />
+              </button>
+            </div>
+            {message && <p className={`text-center mt-4 text-sm font-medium ${message.includes('Invalid') ? 'text-red-500' : 'text-gray-700'}`}>{message}</p>}
+          </div>
         </div>
-      )}
+      ) : (
+        <>
+          <Header totalCartItems={totalCartItems} onCartClick={() => setIsCartOpen(true)} />
+          
+          <div className="text-center mb-8">
+            <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">Our Menu</h1>
+            <p className="text-gray-400 mt-2 text-sm sm:text-base">Explore our delicious offerings. Select filters to find your perfect dish.</p>
+          </div>
 
-      <FloatingCart 
-        cart={cart}
-        totalCartItems={totalCartItems}
-        cartTotal={cartTotal}
-        isExpanded={isCartExpanded}
-        onToggleExpanded={() => setIsCartExpanded(!isCartExpanded)}
-        onUpdateQuantity={handleUpdateCartQuantity}
-        onRemoveItem={handleRemoveFromCart}
-        onClearCart={handleClearCart}
-      />
+          <FilterControls 
+            typeFilter={typeFilter}
+            setTypeFilter={setTypeFilter}
+            tagFilter={tagFilter}
+            handleTagClick={handleTagClick}
+            allTags={allTags}
+            clearTagFilter={() => setTagFilter(null)}
+          />
+
+          <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 max-w-7xl mx-auto">
+            {filteredItems.map(item => (
+              <MenuItemCard
+                key={item.id}
+                item={item}
+                cartItem={cart.find(ci => ci.id === item.id)}
+                onQuantityChange={handleItemQuantityChange}
+                onTagClick={handleTagClick}
+                onImageError={handleImageError}
+              />
+            ))}
+          </div>
+
+          {filteredItems.length === 0 && (
+            <div className="text-center text-gray-500 mt-16 col-span-full">
+                <h3 className="text-xl font-semibold">No Matches Found</h3>
+                <p>Try adjusting your filters.</p>
+            </div>
+          )}
+
+          <CartModal 
+              isOpen={isCartOpen}
+              onClose={() => setIsCartOpen(false)}
+              cart={cart}
+              onUpdateQuantity={handleUpdateCartQuantity}
+              onRemoveItem={handleRemoveFromCart}
+              onClearCart={handleClearCart}
+              total={cartTotal}
+          />
+        </>
+      )}
     </div>
   );
 }
 
+
 // --- Sub-components ---
 
-const Header = () => (
-  <header className="flex justify-center items-center mb-6 pb-4 border-b border-gray-700/50 max-w-7xl mx-auto">
+const Header = ({ totalCartItems, onCartClick }) => (
+  <header className="flex justify-between items-center mb-6 pb-4 border-b border-gray-700/50 max-w-7xl mx-auto">
     <div>
       <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight">The Modern Eatery</h1>
     </div>
+    <button onClick={onCartClick} className="relative p-2 rounded-full text-gray-300 hover:text-white hover:bg-gray-700 transition-colors">
+      <icons.shoppingCart className="w-6 h-6" />
+      {totalCartItems > 0 && (
+        <span className="absolute top-0 right-0 block h-5 w-5 rounded-full bg-purple-600 text-white text-xs font-bold flex items-center justify-center transform translate-x-1/3 -translate-y-1/3 ring-2 ring-gray-900">
+          {totalCartItems}
+        </span>
+      )}
+    </button>
   </header>
 );
 
@@ -185,15 +267,21 @@ const FilterControls = ({ typeFilter, setTypeFilter, tagFilter, handleTagClick, 
 const MenuItemCard = ({ item, cartItem, onQuantityChange, onTagClick, onImageError }) => (
   <div className={`bg-gray-800 rounded-xl overflow-hidden shadow-lg flex flex-col transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl ${item.topSeller ? 'ring-2 ring-purple-500 shadow-xl shadow-purple-500/30' : 'ring-1 ring-gray-700'}`}>
     <div className="relative">
+      {/* Adjusted image height for better scaling on smaller screens */}
       <img src={item.image} alt={item.name} className="w-full h-32 sm:h-40 md:h-48 object-cover" onError={onImageError} />
       {item.topSeller && <span className="absolute top-2 right-2 bg-purple-600 text-white text-xs font-bold px-2 py-1 rounded-md shadow-lg">Top Seller</span>}
     </div>
     <div className="p-3 sm:p-4 flex flex-col flex-grow">
-      <div className="flex justify-between items-start mb-2 min-h-[3rem]">
-        <h2 className="text-base sm:text-lg font-semibold text-white flex-1 mr-2 line-clamp-2">{item.name}</h2>
+      {/* Name now takes full width and is line-clamped */}
+      <div className="mb-2 min-h-[3rem]">
+        <h2 className="text-base sm:text-lg font-semibold text-white w-full line-clamp-2">{item.name}</h2>
+      </div>
+      {/* Description now has less bottom margin to make space for the price below it */}
+      <p className="text-xs sm:text-sm text-gray-400 mb-2 flex-grow">{item.description}</p>
+      {/* Price moved to a new div, justified to the end */}
+      <div className="flex justify-end items-center mb-4"> {/* Added mb-4 for spacing before tags */}
         <span className="text-green-400 font-bold text-base sm:text-lg">₹{item.price.toFixed(2)}</span>
       </div>
-      <p className="text-xs sm:text-sm text-gray-400 mb-4 flex-grow">{item.description}</p>
       <div className="flex flex-wrap gap-1.5 sm:gap-2 mb-4">
         {item.tags.map(tag => (
           <button key={tag} onClick={() => onTagClick(tag)} className="text-xs px-2 sm:px-2.5 py-1 rounded-full bg-gray-700 text-gray-300 hover:bg-purple-500 hover:text-white transition-colors">
@@ -218,108 +306,53 @@ const MenuItemCard = ({ item, cartItem, onQuantityChange, onTagClick, onImageErr
   </div>
 );
 
-const FloatingCart = ({ cart, totalCartItems, cartTotal, isExpanded, onToggleExpanded, onUpdateQuantity, onRemoveItem, onClearCart }) => {
-  if (totalCartItems === 0) return null;
-
-  return (
-    <div className="fixed bottom-0 left-0 right-0 z-50">
-      {/* Backdrop when expanded */}
-      {isExpanded && (
-        <div 
-          className="fixed inset-0 bg-black/50 z-40" 
-          onClick={onToggleExpanded}
-        />
-      )}
-      
-      {/* Floating cart container */}
-      <div className={`relative z-50 bg-gray-800 border-t border-gray-700 shadow-2xl transition-all duration-300 ${
-        isExpanded ? 'max-h-96' : 'max-h-20'
-      }`}>
-        
-        {/* Cart header - always visible */}
-        <div 
-          className="flex items-center justify-between p-4 cursor-pointer hover:bg-gray-750 transition-colors"
-          onClick={onToggleExpanded}
-        >
-          <div className="flex items-center gap-3">
-            <div className="relative">
-              <icons.shoppingCart className="w-6 h-6 text-purple-400" />
-              <span className="absolute -top-2 -right-2 bg-purple-600 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
-                {totalCartItems}
-              </span>
-            </div>
-            <div>
-              <p className="text-white font-semibold">{totalCartItems} {totalCartItems === 1 ? 'item' : 'items'}</p>
-              <p className="text-green-400 font-bold">₹{cartTotal}</p>
-            </div>
+const CartModal = ({ isOpen, onClose, cart, onUpdateQuantity, onRemoveItem, total, onClearCart }) => (
+  <>
+    <div className={`fixed inset-0 bg-black/60 z-40 transition-opacity ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`} onClick={onClose}></div>
+    <div className={`fixed top-0 right-0 h-full w-full max-w-md bg-gray-900 shadow-2xl z-50 transform transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+      <div className="flex flex-col h-full">
+        <header className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-700">
+          <h2 className="text-xl font-bold text-white">Your Cart</h2>
+          <button onClick={onClose} className="p-2 rounded-full text-gray-400 hover:bg-gray-800 hover:text-white transition-colors"><icons.x className="w-6 h-6"/></button>
+        </header>
+        {cart.length === 0 ? (
+          <div className="flex-grow flex flex-col items-center justify-center text-center p-6">
+            <icons.shoppingCart className="w-16 h-16 text-gray-600 mb-4" />
+            <h3 className="text-lg font-semibold text-white">Your cart is empty</h3>
+            <p className="text-gray-400">Add some delicious items from the menu!</p>
           </div>
-          
-          <div className="flex items-center gap-2">
-            <button className="bg-purple-600 hover:bg-purple-700 text-white font-semibold px-6 py-2 rounded-lg transition-colors">
-              Checkout
-            </button>
-            {isExpanded ? (
-              <icons.chevronDown className="w-5 h-5 text-gray-400" />
-            ) : (
-              <icons.chevronUp className="w-5 h-5 text-gray-400" />
-            )}
-          </div>
-        </div>
-
-        {/* Expanded cart content */}
-        {isExpanded && (
-          <div className="border-t border-gray-700">
-            <div className="max-h-64 overflow-y-auto p-4">
-              <div className="space-y-3">
-                {cart.map(item => (
-                  <div key={item.id} className="flex items-center gap-3 bg-gray-700 rounded-lg p-3">
-                    <img 
-                      src={item.image} 
-                      alt={item.name} 
-                      className="w-12 h-12 rounded-md object-cover flex-shrink-0"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <h4 className="text-white font-medium text-sm truncate">{item.name}</h4>
-                      <p className="text-gray-400 text-xs">₹{item.price.toFixed(2)}</p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <button 
-                        onClick={() => onUpdateQuantity(item.id, item.quantity - 1)}
-                        className="w-7 h-7 rounded-full bg-gray-600 hover:bg-red-500 transition-colors flex items-center justify-center"
-                      >
-                        <icons.minus className="w-3 h-3" />
-                      </button>
-                      <span className="text-white font-medium w-6 text-center text-sm">{item.quantity}</span>
-                      <button 
-                        onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}
-                        className="w-7 h-7 rounded-full bg-gray-600 hover:bg-green-500 transition-colors flex items-center justify-center"
-                      >
-                        <icons.plus className="w-3 h-3" />
-                      </button>
-                      <button 
-                        onClick={() => onRemoveItem(item.id)}
-                        className="ml-2 text-gray-500 hover:text-red-400 transition-colors"
-                      >
-                        <icons.trash className="w-4 h-4" />
-                      </button>
-                    </div>
+        ) : (
+          <div className="flex-grow overflow-y-auto p-4 sm:p-6">
+            <ul className="-my-4 divide-y divide-gray-700">
+              {cart.map(item => (
+                <li key={item.id} className="flex items-center py-4 gap-4">
+                  <img src={item.image} alt={item.name} className="w-16 h-16 rounded-lg object-cover" />
+                  <div className="flex-1">
+                    <h3 className="text-md font-semibold text-white">{item.name}</h3>
+                    <p className="text-sm text-gray-400">₹{item.price.toFixed(2)}</p>
                   </div>
-                ))}
-              </div>
-            </div>
-            
-            {/* Cart actions */}
-            <div className="border-t border-gray-600 p-4">
-              <button 
-                onClick={onClearCart}
-                className="w-full text-sm text-gray-500 hover:text-red-400 transition-colors"
-              >
-                Clear Cart
-              </button>
-            </div>
+                  <div className="flex items-center gap-3">
+                    <button onClick={() => onUpdateQuantity(item.id, item.quantity - 1)} className="p-1 rounded-full bg-gray-800 hover:bg-red-500 transition-colors"><icons.minus className="w-4 h-4"/></button>
+                    <span className="font-bold">{item.quantity}</span>
+                    <button onClick={() => onUpdateQuantity(item.id, item.quantity + 1)} className="p-1 rounded-full bg-gray-800 hover:bg-green-500 transition-colors"><icons.plus className="w-4 h-4"/></button>
+                  </div>
+                  <button onClick={() => onRemoveItem(item.id)} className="p-1 text-gray-500 hover:text-red-400 transition-colors"><icons.trash className="w-5 h-5"/></button>
+                </li>
+              ))}
+            </ul>
           </div>
+        )}
+        {cart.length > 0 && (
+          <footer className="p-4 sm:p-6 border-t border-gray-700">
+            <div className="flex justify-between items-center mb-4">
+              <span className="text-lg font-medium text-gray-300">Subtotal</span>
+              <span className="text-2xl font-bold text-green-400">₹{total}</span>
+            </div>
+            <button className="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-4 rounded-lg transition-colors text-lg">Proceed to Checkout</button>
+            <button onClick={onClearCart} className="w-full mt-2 text-sm text-gray-500 hover:text-red-400 transition-colors">Clear Cart</button>
+          </footer>
         )}
       </div>
     </div>
-  );
-};
+  </>
+);
